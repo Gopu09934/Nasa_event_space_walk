@@ -33,9 +33,9 @@ FONT="font.ttf"
 # of the old bright amber/red combo, plus a warm near-black (instead of
 # flat black) for all panel backgrounds so they read as "dusty Martian
 # night" rather than generic dark-UI grey.
-GOLD="0xC17F3E"        # copper/bronze accent (dividers, headers, borders, ring pulse)
-RED="0xB33A2E"         # muted rust-red accent (LIVE dot, CTA dot)
-PANEL_BG="0x140B08"    # warm near-black used behind all panel/ticker/CTA boxes
+GOLD="0x0B3D91"        # copper/bronze accent (dividers, headers, borders, ring pulse)
+RED="0xFC3D21"         # muted rust-red accent (LIVE dot, CTA dot)
+PANEL_BG="0x05070D"    # warm near-black used behind all panel/ticker/CTA boxes
 ASSET_DIR="panel_assets"
 INFO_FILE="galaxy_info.txt"
 SLOT=6            # seconds each headline is shown
@@ -115,7 +115,7 @@ mkdir -p "$ASSET_DIR"
 # have a matching .labels.txt file.
 #############################################
 DOT_MARKER="dot_marker.png"
-GOLD_R=193; GOLD_G=127; GOLD_B=62
+GOLD_R=11; GOLD_G=61; GOLD_B=145
 DOT_VF="format=rgba,geq=r=(if(lte(hypot(X-10\,Y-10)\,5)\,${GOLD_R}\,if(lte(hypot(X-10\,Y-10)\,8)\,255\,0))):g=(if(lte(hypot(X-10\,Y-10)\,5)\,${GOLD_G}\,if(lte(hypot(X-10\,Y-10)\,8)\,255\,0))):b=(if(lte(hypot(X-10\,Y-10)\,5)\,${GOLD_B}\,if(lte(hypot(X-10\,Y-10)\,8)\,255\,0))):a=(if(lte(hypot(X-10\,Y-10)\,8)\,255\,0))"
 ffmpeg -y -f lavfi -i "color=c=black@0.0:s=20x20" -vf "$DOT_VF" -frames:v 1 "$DOT_MARKER" -loglevel error
 if [ ! -s "$DOT_MARKER" ]; then
