@@ -29,15 +29,16 @@ echo "FPS               : 30"
 echo "========================================"
 
 FONT="font.ttf"
-# Premium Mars theme: deep copper/bronze accent + muted rust-red instead
-# of the old bright amber/red combo, plus a warm near-black (instead of
-# flat black) for all panel backgrounds so they read as "dusty Martian
-# night" rather than generic dark-UI grey.
-GOLD="0x0B3D91"        # copper/bronze accent (dividers, headers, borders, ring pulse)
-RED="0xFC3D21"         # muted rust-red accent (LIVE dot, CTA dot)
-PANEL_BG="0x05070D"    # warm near-black used behind all panel/ticker/CTA boxes
+# NASA Spacewalk theme: classic NASA "meatball" blue + red accents on a
+# deep space-black panel background, replacing the old Mars copper/rust
+# palette. Variable names (GOLD/RED/PANEL_BG) are kept as-is since they
+# are referenced throughout the rest of the script — only the hex
+# values and this comment changed.
+GOLD="0x0B3D91"        # NASA blue accent (dividers, headers, borders, ring pulse)
+RED="0xFC3D21"         # NASA red accent (LIVE dot, CTA dot)
+PANEL_BG="0x05070D"    # deep space-black used behind all panel/ticker/CTA boxes
 ASSET_DIR="panel_assets"
-INFO_FILE="galaxy_info.txt"
+INFO_FILE="spacewalk_info.txt"
 SLOT=6            # seconds each headline is shown
 FACT_SLOT=8       # seconds each fun fact is shown
 TICKER_SPEED=110  # pixels/second for the bottom ticker scroll
@@ -73,10 +74,10 @@ SUB_ICON_R=20
 RIGHT_PANEL_X=933      # left edge of the right panel (panel runs to x=1280)
 RIGHT_PANEL_W=347
 RIGHT_PANEL_H=610
-MARS_DATA_REFRESH=8    # seconds between simulated environmental readings
+ORBIT_DATA_REFRESH=8    # seconds between simulated environmental readings
 SPARK_HISTORY=8        # how many past wind readings feed the trend sparkline
-LANDING_DATE_EPOCH=1613637480   # 2021-02-18 20:38 UTC (Perseverance touchdown) — used to compute the live Sol counter
-SOL_LENGTH_SECONDS=88775        # 1 Martian sol ≈ 24h 39m 35s
+ISS_HABITATION_EPOCH=973156860  # 2000-11-02 09:21 UTC (Expedition 1 docking — start of continuous ISS crewed operations) — used to compute the live "Day of continuous operations" counter
+DAY_LENGTH_SECONDS=86400        # 1 Earth day
 
 #############################################
 # Up-next bumper (shown between videos)
@@ -84,16 +85,16 @@ SOL_LENGTH_SECONDS=88775        # 1 Martian sol ≈ 24h 39m 35s
 ENABLE_BUMPER=true
 BUMPER_DURATION=5   # seconds
 BUMPER_MESSAGES=(
-    "Stay tuned for more incredible views from the surface of Mars."
-    "Discover the latest raw images captured by NASA's Perseverance rover."
-    "Our journey across the Red Planet continues in just a moment."
-    "Exploring ancient rocks, dunes, and the fascinating landscape of Jezero Crater."
-    "More breathtaking Martian discoveries are coming up next."
-    "Witness Mars through the cameras of the Perseverance rover."
-    "Every new image helps scientists uncover the history of the Red Planet."
-    "Prepare for another unforgettable adventure across the Martian surface."
-    "New Mars discoveries await just beyond the next frame."
-    "Thank you for exploring Mars with us. More amazing Perseverance images are coming soon."
+    "Stay tuned for more incredible views from the International Space Station."
+    "Watch NASA astronauts venture outside the station on U.S. Spacewalk 97."
+    "Our coverage of today's EVA continues in just a moment."
+    "Exploring the systems and science aboard the orbiting laboratory."
+    "More breathtaking views from low Earth orbit are coming up next."
+    "Witness the spacewalk through NASA's live EVA camera feeds."
+    "Every spacewalk helps keep the International Space Station running for science."
+    "Prepare for another unforgettable moment 250 miles above Earth."
+    "More live NASA mission coverage awaits just beyond the next frame."
+    "Thank you for watching with us. More live NASA coverage is coming soon."
 )
 
 #############################################
@@ -137,9 +138,9 @@ fi
 # so no per-frame scaling filter is needed and
 # every video streams the same pre-baked file.
 #
-# MARS_SOURCE_IMG is expected to sit alongside
+# SPACEWALK_SOURCE_IMG is expected to sit alongside
 # overlay.png/font.ttf in the working directory
-# (e.g. a NASA/JPL-Caltech Mars photo committed
+# (e.g. a NASA spacewalk/EVA photo committed
 # to the repo). Same guaranteed-to-exist pattern
 # as DOT_MARKER above: if the source is missing
 # or the crop fails, fall back to a blank 1x1
@@ -148,20 +149,20 @@ fi
 # missing -i target — the box border/label still
 # render, just without a photo inside.
 #############################################
-MARS_SOURCE_IMG="mars_photo.jpg"
-MARS_PANEL_IMG="mars_panel.png"
-MARS_PANEL_W=294
-MARS_PANEL_H=176
-if [ -f "$MARS_SOURCE_IMG" ]; then
-    ffmpeg -y -i "$MARS_SOURCE_IMG" \
-        -vf "scale=${MARS_PANEL_W}:${MARS_PANEL_H}:force_original_aspect_ratio=increase,crop=${MARS_PANEL_W}:${MARS_PANEL_H},format=rgba" \
-        -frames:v 1 "$MARS_PANEL_IMG" -loglevel error || true
+SPACEWALK_SOURCE_IMG="spacewalk_photo.jpg"
+SPACEWALK_PANEL_IMG="spacewalk_panel.png"
+PANEL_IMG_W=294
+PANEL_IMG_H=176
+if [ -f "$SPACEWALK_SOURCE_IMG" ]; then
+    ffmpeg -y -i "$SPACEWALK_SOURCE_IMG" \
+        -vf "scale=${PANEL_IMG_W}:${PANEL_IMG_H}:force_original_aspect_ratio=increase,crop=${PANEL_IMG_W}:${PANEL_IMG_H},format=rgba" \
+        -frames:v 1 "$SPACEWALK_PANEL_IMG" -loglevel error || true
 else
-    echo "NOTICE: ${MARS_SOURCE_IMG} not found — right-panel featured image will be blank (border/label still show)."
+    echo "NOTICE: ${SPACEWALK_SOURCE_IMG} not found — right-panel featured image will be blank (border/label still show)."
 fi
-if [ ! -s "$MARS_PANEL_IMG" ]; then
-    [ -f "$MARS_SOURCE_IMG" ] && echo "WARNING: Mars panel image generation failed — using a blank 1x1 fallback."
-    echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" | base64 -d > "$MARS_PANEL_IMG"
+if [ ! -s "$SPACEWALK_PANEL_IMG" ]; then
+    [ -f "$SPACEWALK_SOURCE_IMG" ] && echo "WARNING: spacewalk panel image generation failed — using a blank 1x1 fallback."
+    echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" | base64 -d > "$SPACEWALK_PANEL_IMG"
 fi
 
 #############################################
@@ -258,36 +259,36 @@ if [ "$SHOW_STATS" = true ]; then
 fi
 
 #############################################
-# Background Sol-counter + simulated
-# environmental-data writer (temperature, wind
-# speed, pressure) for the new right panel.
+# Background Day-counter + simulated
+# orbital-data writer (altitude, velocity,
+# orbital period) for the new right panel.
 #
-# NOTE ON DATA SOURCE: Perseverance's MEDA
-# weather instrument doesn't expose a simple
-# public real-time JSON feed the way the
-# YouTube Data API does for subscriber counts,
-# so — unlike subs.txt/viewers.txt above — these
-# numbers are NOT pulled from a live NASA
-# reading. They're a bounded, slowly-varying
-# simulation built from published Jezero Crater
-# climate ranges, refreshed every
-# MARS_DATA_REFRESH seconds. The on-screen
-# labels are marked "(est.)" so viewers aren't
-# told this is certified live telemetry. If you
-# later get access to a real feed, swap the
-# awk-based generation below for a curl call,
-# same pattern as the subs/viewers writers.
+# NOTE ON DATA SOURCE: NASA doesn't expose a
+# simple public real-time JSON feed for live ISS
+# telemetry the way the YouTube Data API does for
+# subscriber counts, so — unlike subs.txt/viewers.txt
+# above — these numbers are NOT pulled from a live
+# feed. They're a bounded, slowly-varying simulation
+# built around the ISS's published nominal orbit
+# (~400-420km altitude, ~27,600 km/h, ~93 minute
+# period), refreshed every ORBIT_DATA_REFRESH
+# seconds. The on-screen labels are marked "(est.)"
+# so viewers aren't told this is certified live
+# telemetry. If you later get access to a real feed
+# (e.g. NASA's ISS tracking API), swap the awk-based
+# generation below for a curl call, same pattern as
+# the subs/viewers writers.
 #
-# The Sol counter is computed for real, from the
-# actual landing timestamp (LANDING_DATE_EPOCH),
-# so that number is genuine.
+# The Day counter is computed for real, from the
+# actual start of continuous ISS crewed operations
+# (ISS_HABITATION_EPOCH), so that number is genuine.
 #############################################
-printf ' ' > "$ASSET_DIR/rp_sol.txt"
-printf ' ' > "$ASSET_DIR/rp_temp.txt"
-printf ' ' > "$ASSET_DIR/rp_wind.txt"
-printf ' ' > "$ASSET_DIR/rp_pressure.txt"
+printf ' ' > "$ASSET_DIR/rp_day.txt"
+printf ' ' > "$ASSET_DIR/rp_alt.txt"
+printf ' ' > "$ASSET_DIR/rp_vel.txt"
+printf ' ' > "$ASSET_DIR/rp_period.txt"
 printf ' ' > "$ASSET_DIR/rp_spark.txt"
-MARS_DATA_PID=""
+ORBIT_DATA_PID=""
 (
     # ASCII-only intensity ramp for the sparkline — safer than Unicode
     # block characters (▁▂▃▄▅▆▇█) since there's no guarantee font.ttf
@@ -296,52 +297,52 @@ MARS_DATA_PID=""
     HISTORY=()
     while true; do
         NOW_EPOCH=$(date -u +%s)
-        SOL=$(awk -v now="$NOW_EPOCH" -v landed="$LANDING_DATE_EPOCH" -v sollen="$SOL_LENGTH_SECONDS" 'BEGIN{printf "%d", (now-landed)/sollen}')
-        printf 'Sol %s' "$SOL" > "$ASSET_DIR/rp_sol.txt.tmp"
-        mv -f "$ASSET_DIR/rp_sol.txt.tmp" "$ASSET_DIR/rp_sol.txt"
+        DAY=$(awk -v now="$NOW_EPOCH" -v started="$ISS_HABITATION_EPOCH" -v daylen="$DAY_LENGTH_SECONDS" 'BEGIN{printf "%d", (now-started)/daylen}')
+        printf 'Day %s' "$DAY" > "$ASSET_DIR/rp_day.txt.tmp"
+        mv -f "$ASSET_DIR/rp_day.txt.tmp" "$ASSET_DIR/rp_day.txt"
 
-        HOUR=$(date -u +%H)
-        # Simple bounded day/night swing within Jezero's published range
-        # (roughly -90C overnight low to -20C midday high), plus a small
-        # random wobble so it doesn't look like a static repeating chart.
-        TEMP=$(awk -v h="$HOUR" 'BEGIN{srand(); base=-60; swing=35; printf "%d", base + swing*sin((h/24)*3.14159*2 - 1.2) + (rand()*4-2)}')
-        WIND=$(awk 'BEGIN{srand(); printf "%.1f", 2 + rand()*9}')
-        PRESSURE=$(awk 'BEGIN{srand(); printf "%d", 730 + rand()*40}')
+        # Small bounded wobble around the ISS's published nominal orbit
+        # (altitude ~400-420km, velocity ~27,600 km/h, orbital period
+        # ~93 minutes) so the readout doesn't look like a static repeating
+        # chart. See note above — not a live telemetry feed.
+        ALT=$(awk 'BEGIN{srand(); printf "%d", 408 + (rand()*10-5)}')
+        VEL=$(awk 'BEGIN{srand(); printf "%d", 27600 + (rand()*80-40)}')
+        PERIOD=$(awk 'BEGIN{srand(); printf "%.1f", 92.9 + (rand()*0.6-0.3)}')
 
-        printf 'Temp: %s C' "$TEMP" > "$ASSET_DIR/rp_temp.txt.tmp"
-        mv -f "$ASSET_DIR/rp_temp.txt.tmp" "$ASSET_DIR/rp_temp.txt"
-        printf 'Wind: %s m/s' "$WIND" > "$ASSET_DIR/rp_wind.txt.tmp"
-        mv -f "$ASSET_DIR/rp_wind.txt.tmp" "$ASSET_DIR/rp_wind.txt"
-        printf 'Pressure: %s Pa' "$PRESSURE" > "$ASSET_DIR/rp_pressure.txt.tmp"
-        mv -f "$ASSET_DIR/rp_pressure.txt.tmp" "$ASSET_DIR/rp_pressure.txt"
+        printf 'Alt: %s km' "$ALT" > "$ASSET_DIR/rp_alt.txt.tmp"
+        mv -f "$ASSET_DIR/rp_alt.txt.tmp" "$ASSET_DIR/rp_alt.txt"
+        printf 'Vel: %s km/h' "$VEL" > "$ASSET_DIR/rp_vel.txt.tmp"
+        mv -f "$ASSET_DIR/rp_vel.txt.tmp" "$ASSET_DIR/rp_vel.txt"
+        printf 'Orbit period: %s min' "$PERIOD" > "$ASSET_DIR/rp_period.txt.tmp"
+        mv -f "$ASSET_DIR/rp_period.txt.tmp" "$ASSET_DIR/rp_period.txt"
 
-        HISTORY+=("$WIND")
+        HISTORY+=("$VEL")
         while [ "${#HISTORY[@]}" -gt "$SPARK_HISTORY" ]; do
             HISTORY=("${HISTORY[@]:1}")
         done
         SPARK=""
         for v in "${HISTORY[@]}"; do
-            BUCKET=$(awk -v v="$v" 'BEGIN{b=int((v/11)*7); if(b<0)b=0; if(b>7)b=7; print b}')
+            BUCKET=$(awk -v v="$v" 'BEGIN{b=int(((v-27500)/200)*7); if(b<0)b=0; if(b>7)b=7; print b}')
             SPARK+="${SPARK_CHARS[$BUCKET]}"
         done
         printf '%s' "$SPARK" > "$ASSET_DIR/rp_spark.txt.tmp"
         mv -f "$ASSET_DIR/rp_spark.txt.tmp" "$ASSET_DIR/rp_spark.txt"
 
-        sleep "$MARS_DATA_REFRESH"
+        sleep "$ORBIT_DATA_REFRESH"
     done
 ) &
-MARS_DATA_PID=$!
+ORBIT_DATA_PID=$!
 
-trap 'kill "$CLOCK_PID" 2>/dev/null || true; [ -n "$SUBS_PID" ] && kill "$SUBS_PID" 2>/dev/null || true; [ -n "$VIEWERS_PID" ] && kill "$VIEWERS_PID" 2>/dev/null || true; [ -n "$MARS_DATA_PID" ] && kill "$MARS_DATA_PID" 2>/dev/null || true' EXIT
+trap 'kill "$CLOCK_PID" 2>/dev/null || true; [ -n "$SUBS_PID" ] && kill "$SUBS_PID" 2>/dev/null || true; [ -n "$VIEWERS_PID" ] && kill "$VIEWERS_PID" 2>/dev/null || true; [ -n "$ORBIT_DATA_PID" ] && kill "$ORBIT_DATA_PID" 2>/dev/null || true' EXIT
 
 #############################################
 # Static panel text (unchanged across videos)
 #############################################
-printf 'M A R S   2 0 2 0'                     > "$ASSET_DIR/title1.txt"
-printf 'P E R S E V E R A N C E   R O V E R'  > "$ASSET_DIR/title2.txt"
-printf "L A T E S T   M A R S   I M A G E S"  > "$ASSET_DIR/header.txt"
-printf 'LIVE FROM JEZERO CRATER'             > "$ASSET_DIR/eyebrow.txt"
-printf 'SUBSCRIBE for daily Mars discoveries' > "$ASSET_DIR/cta.txt"
+printf 'I S S   S P A C E W A L K'             > "$ASSET_DIR/title1.txt"
+printf 'U . S .   S P A C E W A L K   9 7'    > "$ASSET_DIR/title2.txt"
+printf "L I V E   E V A   C O V E R A G E"    > "$ASSET_DIR/header.txt"
+printf 'LIVE FROM THE INTERNATIONAL SPACE STATION' > "$ASSET_DIR/eyebrow.txt"
+printf 'SUBSCRIBE for live NASA spacewalk coverage' > "$ASSET_DIR/cta.txt"
 printf 'DID YOU KNOW' > "$ASSET_DIR/fact_label.txt"
 
 #############################################
@@ -350,88 +351,79 @@ printf 'DID YOU KNOW' > "$ASSET_DIR/fact_label.txt"
 # left panel's static strings above.
 #############################################
 printf 'MISSION DETAILS' > "$ASSET_DIR/rp_header.txt"
-printf 'Rover: Perseverance' > "$ASSET_DIR/rp_line1.txt"
-printf 'Launched: 30 Jul 2020' > "$ASSET_DIR/rp_line2.txt"
-printf 'Landed: 18 Feb 2021' > "$ASSET_DIR/rp_line3.txt"
-printf 'Site: Jezero Crater' > "$ASSET_DIR/rp_line4.txt"
-printf 'ENVIRONMENTAL DATA (est.)' > "$ASSET_DIR/rp_env_header.txt"
-printf 'WIND TREND (est.)' > "$ASSET_DIR/rp_wind_label.txt"
+printf 'EVA: U.S. Spacewalk 97' > "$ASSET_DIR/rp_line1.txt"
+printf 'Crew 1: Anil Menon (NASA)' > "$ASSET_DIR/rp_line2.txt"
+printf 'Crew 2: Sophie Adenot (ESA)' > "$ASSET_DIR/rp_line3.txt"
+printf 'Task: Replace S-Band Antenna' > "$ASSET_DIR/rp_line4.txt"
+printf 'ORBITAL DATA (est.)' > "$ASSET_DIR/rp_env_header.txt"
+printf 'VELOCITY TREND (est.)' > "$ASSET_DIR/rp_trend_label.txt"
 printf 'FEATURED IMAGE' > "$ASSET_DIR/rp_img_label.txt"
 
 #############################################
 # Default headline / fact pools (used as a
-# last resort if galaxy_info.txt / facts.txt
+# last resort if spacewalk_info.txt / facts.txt
 # are missing or empty)
 #############################################
 DEFAULT_HEADLINES=(
-    "NASA's Perseverance rover continues exploring the ancient river delta inside Jezero Crater."
-    "New raw images from Mars reveal fascinating rocks, dunes, and the rugged Martian landscape."
-    "Scientists are studying Martian rocks for signs that ancient microbial life may once have existed."
-    "Perseverance is collecting carefully selected rock core samples for a future Mars Sample Return mission."
-    "The Mastcam-Z camera is capturing high-resolution panoramic views of the Red Planet."
-    "SuperCam uses laser spectroscopy to analyze the chemistry and composition of Martian rocks."
-    "RIMFAX ground-penetrating radar is revealing what lies beneath the Martian surface."
-    "Engineers continue monitoring the health and performance of the Perseverance rover on Mars."
-    "Every new image helps scientists better understand Mars' ancient climate and geological history."
-    "Jezero Crater was once home to an ancient lake and river delta billions of years ago."
-    "Mars dust, rocks, and sediment layers provide clues about the planet's watery past."
-    "Perseverance is investigating minerals that may have formed in the presence of liquid water."
-    "NASA's Mars Reconnaissance Orbiter supports surface exploration from orbit around Mars."
-    "The Perseverance mission is paving the way for future robotic and human exploration of Mars."
-    "Each new Sol brings fresh discoveries from one of the most advanced robotic explorers ever sent to another planet."
+    "NASA astronauts Anil Menon and Sophie Adenot are conducting U.S. Spacewalk 97 outside the International Space Station."
+    "Today's spacewalk focuses on replacing a Space-to-Ground antenna used for high-speed communications with Mission Control."
+    "Astronauts exited the station's Quest airlock to begin today's six-and-a-half-hour excursion."
+    "This is the second of three U.S. spacewalks NASA is conducting in August to upgrade station systems."
+    "ESA astronaut Sophie Adenot is serving as spacewalk crew member 2 for today's EVA."
+    "NASA astronaut Anil Menon is serving as spacewalk crew member 1 for today's EVA."
+    "Mission Control in Houston is coordinating every step of today's spacewalk in real time."
+    "The Space-to-Ground antenna being replaced is a critical link for data between the ISS and Earth."
+    "Today's spacewalk is part of ongoing upgrades to the space station's solar arrays and communications systems."
+    "The International Space Station has hosted continuous crews since November 2000."
+    "Spacewalks like today's help maintain and upgrade the station as it approaches its later years of operation."
+    "NASA is livestreaming today's entire spacewalk from cameras mounted on the astronauts' suits and the station."
+    "Flight controllers track every tool, tether, and task during a spacewalk to keep the crew safe."
+    "Each spacewalk is meticulously planned and rehearsed on the ground before astronauts ever open the airlock."
+    "Today's EVA is one of nearly 300 spacewalks conducted in support of space station assembly and maintenance."
 )
 
 DEFAULT_FACTS=(
-    "Mars is the fourth planet from the Sun and is known as the Red Planet."
-    "A Martian day, called a Sol, lasts 24 hours, 39 minutes, and 35 seconds."
-    "A Martian year is equal to about 687 Earth days."
-    "Mars has two small moons named Phobos and Deimos."
-    "Perseverance landed safely in Jezero Crater on February 18, 2021."
-    "Jezero Crater was once home to an ancient lake and river delta billions of years ago."
-    "The Perseverance rover is searching for signs of ancient microbial life on Mars."
-    "Perseverance carries seven advanced scientific instruments for studying Mars."
-    "The rover has 19 cameras for science, engineering, and navigation."
-    "Mastcam-Z captures high-resolution color images with powerful zoom capability."
-    "SuperCam uses lasers to analyze the chemistry of Martian rocks from a distance."
-    "PIXL studies the elemental composition of rocks at microscopic scales."
-    "SHERLOC searches for organic molecules and minerals that may indicate past habitability."
-    "RIMFAX is a ground-penetrating radar that explores layers beneath the Martian surface."
-    "MEDA continuously measures the weather and climate conditions on Mars."
-    "MOXIE successfully produced oxygen from the carbon dioxide in the Martian atmosphere."
-    "Mars has a thin atmosphere made of about 95 percent carbon dioxide."
-    "Surface temperatures on Mars range from about -125°C to 20°C."
-    "Mars is about half the diameter of Earth."
-    "The gravity on Mars is only about 38 percent of Earth's gravity."
-    "Olympus Mons is the tallest volcano in the entire solar system."
-    "Valles Marineris is a canyon system stretching more than 4,000 kilometers across Mars."
-    "Mars has polar ice caps made of water ice and frozen carbon dioxide."
-    "Dust storms on Mars can grow large enough to cover the entire planet."
-    "Perseverance is collecting rock core samples for future return to Earth."
-    "Scientists hope these samples will reveal whether ancient life once existed on Mars."
-    "NASA's Mars Reconnaissance Orbiter helps support rover operations from orbit."
-    "Radio signals between Earth and Mars can take between 3 and 22 minutes to travel."
-    "Perseverance is powered by a radioisotope thermoelectric generator instead of solar panels."
-    "The rover can travel across rough terrain using six independently driven wheels."
-    "Mars has seasons because its axis is tilted similarly to Earth's."
-    "Ancient river channels and lakebeds suggest that liquid water once flowed on Mars."
-    "Some Martian rocks contain minerals that formed in the presence of water."
-    "Perseverance is exploring one of the most promising locations for ancient life on Mars."
-    "Every new Sol brings fresh scientific observations from the Martian surface."
-    "The rover records thousands of raw images that are publicly released by NASA."
-    "Perseverance studies both the geology and climate history of Mars."
-    "Scientists use rover data to prepare for future human missions to Mars."
-    "Mars has the largest known dust devils in the solar system."
-    "The Martian sky often appears butterscotch in color because of fine airborne dust."
-    "Mars has no global magnetic field like Earth."
-    "The average distance between Earth and Mars is about 225 million kilometers."
-    "NASA's Perseverance mission is part of the Mars 2020 exploration program."
-    "The rover's robotic arm can precisely place scientific instruments onto rocks."
-    "Jezero Crater is about 45 kilometers wide."
-    "Scientists believe Jezero once emptied into a large ancient lake."
-    "Wind continues to shape dunes and rock formations across the Martian landscape."
-    "Mars remains one of the best places to search for evidence of ancient extraterrestrial life."
-    "Perseverance continues sending valuable scientific data back to Earth every day."
-    "Each image captured by Perseverance helps expand our understanding of the Red Planet."
+    "Today's spacewalk is officially designated U.S. Spacewalk 97."
+    "NASA astronaut Anil Menon and ESA astronaut Sophie Adenot are conducting today's spacewalk."
+    "Astronauts exit the International Space Station through the Quest airlock to begin a spacewalk."
+    "Today's spacewalk is expected to last about six and a half hours."
+    "The primary task today is replacing a Space-to-Ground antenna on the space station."
+    "The Space-to-Ground antenna enables high-speed communication between Houston and the ISS."
+    "This is the second of three U.S. spacewalks NASA scheduled for August."
+    "The International Space Station orbits about 250 miles above Earth."
+    "The ISS travels at roughly 17,500 miles per hour, circling Earth about every 90 minutes."
+    "The station has been continuously inhabited by rotating crews since November 2, 2000."
+    "Spacesuits used for spacewalks are technically called Extravehicular Mobility Units, or EMUs."
+    "Spacewalking astronauts are tethered to the station at all times to prevent drifting away."
+    "Spacewalks are also called EVAs, short for Extravehicular Activity."
+    "Each spacewalk is rehearsed extensively in a giant swimming pool called the Neutral Buoyancy Lab."
+    "The Neutral Buoyancy Laboratory simulates weightlessness for astronaut training on Earth."
+    "Mission Control in Houston monitors every spacewalk step by step for crew safety."
+    "The ISS is a partnership between NASA, Roscosmos, ESA, JAXA, and the Canadian Space Agency."
+    "The space station is roughly the size of a football field, including its solar arrays."
+    "Astronauts on a spacewalk breathe pure oxygen supplied by their spacesuit's life support system."
+    "A spacewalking astronaut's suit is essentially a small, personal spacecraft."
+    "NASA has been conducting spacewalks in support of the ISS since the station's assembly began in 1998."
+    "These August spacewalks also help prepare the station for its eventual retirement and deorbit."
+    "Spacewalk 96, earlier in August, marked the first spacewalk for NASA astronaut Anil Menon."
+    "A third U.S. spacewalk is planned later in August to connect power and data cables on the station."
+    "Ground teams plan every minute of a spacewalk in advance, down to individual tool movements."
+    "The ISS solar arrays convert sunlight into the electricity that powers the entire station."
+    "Communications antennas like the one being replaced are vital for transmitting science data to Earth."
+    "NASA streams spacewalk coverage live so the public can watch astronauts work in real time."
+    "A spacewalking astronaut can face temperature swings of hundreds of degrees between sun and shade."
+    "The ISS has hosted astronauts from more than 20 countries over its lifetime."
+    "Spacewalks require astronauts to pre-breathe pure oxygen to purge nitrogen from their bloodstream."
+    "The Canadarm2 robotic arm is often used to assist and reposition astronauts during a spacewalk."
+    "Every spacewalk adds to a growing record of hands-on maintenance keeping the ISS operational."
+    "The International Space Station has been continuously staffed for more than two decades."
+    "Astronaut suits for ISS spacewalks are stored and maintained in the Quest airlock."
+    "Spacewalks are physically demanding, often burning as many calories as running a marathon."
+    "NASA coordinates spacewalk timing with orbital sunrise and sunset, which occur every 45 minutes."
+    "The space station experiences 16 sunrises and sunsets every 24 hours due to its orbital speed."
+    "Today's spacewalk supports the station's long-term plan for continued science operations."
+    "Spacewalking astronauts rely on checklists displayed on their suit's wrist-mounted cuff."
+    "NASA's spacewalk broadcasts are carried on NASA+, YouTube, and other streaming platforms."
 )
 
 #############################################
@@ -653,7 +645,7 @@ build_labels_chain() {
 # content to match a specific video.
 #
 # Otherwise falls back to the shared pool
-# (galaxy_info.txt / facts.txt / built-in
+# (spacewalk_info.txt / facts.txt / built-in
 # defaults), shuffled into a fresh random order
 # each video so the panel doesn't feel like a
 # static banner repeating identically on every
@@ -789,7 +781,7 @@ prepare_video_content() {
 
     #########################################
     # Right panel: mission details + live
-    # environmental readout. Runs down to
+    # orbital readout. Runs down to
     # y=RIGHT_PANEL_H (610) — above the bottom
     # ticker/CTA row — so it never overlaps the
     # existing elements built in
@@ -811,17 +803,17 @@ prepare_video_content() {
     CHAIN+="[rp9]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_line2.txt:fontcolor=white@0.9:fontsize=15:x=$((rx+27)):y=94:${SHADOW}[rp10];"
     CHAIN+="[rp10]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_line3.txt:fontcolor=white@0.9:fontsize=15:x=$((rx+27)):y=118:${SHADOW}[rp11];"
     CHAIN+="[rp11]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_line4.txt:fontcolor=white@0.9:fontsize=15:x=$((rx+27)):y=142:${SHADOW}[rp12];"
-    CHAIN+="[rp12]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_sol.txt:reload=1:fontcolor=${GOLD}:fontsize=15:x=$((rx+27)):y=166[rp13];"
+    CHAIN+="[rp12]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_day.txt:reload=1:fontcolor=${GOLD}:fontsize=15:x=$((rx+27)):y=166[rp13];"
 
     CHAIN+="[rp13]drawbox=x=$((rx+27)):y=200:w=294:h=2:color=${GOLD}@0.4:t=fill[rp14];"
     CHAIN+="[rp14]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_env_header.txt:fontcolor=${GOLD}@0.85:fontsize=12:x=$((rx+27)):y=212[rp15];"
 
-    CHAIN+="[rp15]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_temp.txt:reload=1:fontcolor=white:fontsize=17:x=$((rx+27)):y=236:${SHADOW}[rp16];"
-    CHAIN+="[rp16]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_wind.txt:reload=1:fontcolor=white:fontsize=17:x=$((rx+27)):y=262:${SHADOW}[rp17];"
-    CHAIN+="[rp17]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_pressure.txt:reload=1:fontcolor=white:fontsize=17:x=$((rx+27)):y=288:${SHADOW}[rp18];"
+    CHAIN+="[rp15]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_alt.txt:reload=1:fontcolor=white:fontsize=17:x=$((rx+27)):y=236:${SHADOW}[rp16];"
+    CHAIN+="[rp16]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_vel.txt:reload=1:fontcolor=white:fontsize=17:x=$((rx+27)):y=262:${SHADOW}[rp17];"
+    CHAIN+="[rp17]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_period.txt:reload=1:fontcolor=white:fontsize=17:x=$((rx+27)):y=288:${SHADOW}[rp18];"
 
     CHAIN+="[rp18]drawbox=x=$((rx+27)):y=320:w=294:h=2:color=${GOLD}@0.4:t=fill[rp19];"
-    CHAIN+="[rp19]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_wind_label.txt:fontcolor=${GOLD}@0.85:fontsize=12:x=$((rx+27)):y=332[rp20];"
+    CHAIN+="[rp19]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_trend_label.txt:fontcolor=${GOLD}@0.85:fontsize=12:x=$((rx+27)):y=332[rp20];"
     CHAIN+="[rp20]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_spark.txt:reload=1:fontcolor=${GOLD}:fontsize=26:x=$((rx+27)):y=352[rp20b];"
 
     #########################################
@@ -830,20 +822,20 @@ prepare_video_content() {
     # (y ~396-604, still inside RIGHT_PANEL_H=610
     # so it never collides with the CTA box /
     # ticker built later in build_final_filter).
-    # Uses the pre-baked, exactly-294x176 Mars
+    # Uses the pre-baked, exactly-294x176 EVA
     # panel image (ffmpeg input index 3, see
-    # MARS_PANEL_IMG generation near the top of
-    # this script and the -i list in run_video())
-    # — no runtime scaling needed since the image
-    # was already cropped to the box size once at
-    # startup, same "prepare once" pattern as
-    # DOT_MARKER.
+    # SPACEWALK_PANEL_IMG generation near the top
+    # of this script and the -i list in
+    # run_video()) — no runtime scaling needed
+    # since the image was already cropped to the
+    # box size once at startup, same "prepare
+    # once" pattern as DOT_MARKER.
     #########################################
     CHAIN+="[rp20b]drawbox=x=$((rx+27)):y=396:w=294:h=2:color=${GOLD}@0.4:t=fill[rp21];"
     CHAIN+="[rp21]drawtext=fontfile=${FONT}:textfile=${ASSET_DIR}/rp_img_label.txt:fontcolor=${GOLD}@0.85:fontsize=12:x=$((rx+27)):y=408[rp22];"
     CHAIN+="[rp22][3:v]overlay=x=$((rx+27)):y=428[rp23];"
     CHAIN+="[rp23]drawbox=x=$((rx+27)):y=428:w=294:h=176:color=${GOLD}@0.7:t=2[rp24];"
-    CHAIN+="[rp24]drawtext=fontfile=${FONT}:text='NASA/JPL-Caltech':fontcolor=white@0.6:fontsize=10:x=$((rx+27+294-140)):y=$((428+176-16)):${SHADOW}[rp_end];"
+    CHAIN+="[rp24]drawtext=fontfile=${FONT}:text='NASA':fontcolor=white@0.6:fontsize=10:x=$((rx+27+294-140)):y=$((428+176-16)):${SHADOW}[rp_end];"
 
     local prev="rp_end"
     for i in "${!RAW_LINES[@]}"; do
@@ -1088,7 +1080,7 @@ run_video() {
         -i "$url" \
         -loop 1 -i overlay.png \
         -loop 1 -i "$DOT_MARKER" \
-        -loop 1 -i "$MARS_PANEL_IMG" \
+        -loop 1 -i "$SPACEWALK_PANEL_IMG" \
         -filter_complex "$filter" \
         -map "[final]" \
         -map 0:a? \
