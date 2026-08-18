@@ -1,3 +1,0 @@
-920,352,Jezero Crater
-580,428,Martian Dust
-1037,90,Rippled Sand

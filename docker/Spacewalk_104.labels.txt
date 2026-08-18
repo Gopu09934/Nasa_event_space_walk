@@ -1,0 +1,3 @@
+920,352,Astronaut
+580,428,Safety Tether
+1037,90,Truss
